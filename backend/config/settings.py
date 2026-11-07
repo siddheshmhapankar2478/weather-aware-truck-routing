@@ -65,6 +65,7 @@ LOGGING = {
 # --- Third-party services -------------------------------------------------
 OSRM_URL = os.environ.get("OSRM_URL", "https://router.project-osrm.org")
 PHOTON_URL = os.environ.get("PHOTON_URL", "https://photon.komoot.io")
+OPEN_METEO_URL = os.environ.get("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
 HTTP_USER_AGENT = os.environ.get("HTTP_USER_AGENT", "weather-aware-truck-routing/1.0")
 
 # OSRM uses a car profile. Trucks cruise slower, so stretch its durations.
