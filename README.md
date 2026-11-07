@@ -104,7 +104,9 @@ cd backend && python manage.py test routing
 
 ## Deployment
 
-The Dockerfile builds the React app and serves it from Django using WhiteNoise, so the whole app runs as one service.
+**Vercel (recommended):** import the repo at [vercel.com/new](https://vercel.com/new) and keep the defaults. [vercel.json](vercel.json) builds the React app as a static site and runs Django as a serverless function at `/api/*` ([api/index.py](api/index.py)). Add a `DJANGO_SECRET_KEY` environment variable in the project settings.
+
+**Docker / Render:** the Dockerfile builds the React app and serves it from Django using WhiteNoise, so the whole app runs as one service.
 
 **Render:** create a new Blueprint from this repo. It uses [render.yaml](render.yaml) and generates the secret key for you.
 

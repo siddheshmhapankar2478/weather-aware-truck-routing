@@ -14,9 +14,13 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
 
 
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key")
-DEBUG = env_bool("DJANGO_DEBUG", True)
+DEBUG = env_bool("DJANGO_DEBUG", not ON_VERCEL)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+if ON_VERCEL:
+    ALLOWED_HOSTS.append(".vercel.app")
 if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 
@@ -28,7 +32,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
@@ -60,7 +63,8 @@ STATIC_URL = "static/"
 # In production the built React app (frontend/dist) is served from "/" by WhiteNoise,
 # so the whole app runs as a single service.
 FRONTEND_DIST = Path(os.environ.get("FRONTEND_DIST", BASE_DIR.parent / "frontend" / "dist"))
-if FRONTEND_DIST.is_dir():
+if FRONTEND_DIST.is_dir() and not ON_VERCEL:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
     WHITENOISE_ROOT = FRONTEND_DIST
     WHITENOISE_INDEX_FILE = True
 
