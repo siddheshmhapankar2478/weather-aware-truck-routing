@@ -133,6 +133,7 @@ export default function RouteMap({ plan, selectedId, onSelect, focusedCheckpoint
         maxZoom={16}
         pane="shadowPane"
       />
+      <Pane name="heat" style={{ zIndex: 350, pointerEvents: "none" }} />
       <Pane name="selected-route" style={{ zIndex: 450 }} />
       <Pane name="selected-checkpoints" style={{ zIndex: 460 }} />
       {children}

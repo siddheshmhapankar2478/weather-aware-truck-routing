@@ -1,5 +1,6 @@
 """Place search via Photon (OpenStreetMap data, no API key)."""
 
+import hashlib
 import re
 from dataclasses import asdict, dataclass
 
@@ -34,7 +35,7 @@ def search_places(query: str, limit: int = 5) -> list[Place]:
     query = query.strip()
     if len(query) < 2:
         return []
-    cache_key = f"geocode:{limit}:{query.lower()}"
+    cache_key = f"geocode:{limit}:{hashlib.sha1(query.lower().encode()).hexdigest()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached

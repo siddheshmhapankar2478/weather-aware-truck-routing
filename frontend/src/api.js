@@ -20,3 +20,5 @@ export const searchPlaces = (query, signal) =>
   request(`/api/geocode?q=${encodeURIComponent(query)}`, { signal }).then((d) => d.results);
 
 export const planTrip = (payload) => request("/api/plan", { method: "POST", body: JSON.stringify(payload) });
+
+export const fetchHeatmap = (payload) => request("/api/heatmap", { method: "POST", body: JSON.stringify(payload) });

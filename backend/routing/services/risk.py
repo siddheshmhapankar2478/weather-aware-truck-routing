@@ -104,3 +104,35 @@ def assess(wind_mph: float, rain_in_hr: float, snow_in_hr: float, load_lb: float
         reasons.append(f"Snow {snow_in_hr:.2f} in/hr → {snow.label}")
 
     return Assessment(level=max(wind, rain, snow), wind=wind, rain=rain, snow=snow, reasons=reasons)
+
+
+# --- Continuous scores for the heatmap ---------------------------------------
+# Where Moderate, High, Severe and No Travel begin for each condition.
+WIND_BOUNDS = (25, 35, 45, 55)
+RAIN_BOUNDS = (0.10, 0.25, 0.50, 1.00)
+SNOW_BOUNDS = (0.5, 1.0, 2.0, 3.0)
+
+
+def _score(level: RiskLevel, value: float, bounds: tuple[float, ...]) -> float:
+    """Level plus how far the value is through that level's band (0–4).
+
+    The whole part always equals the discrete level, so the heatmap and the
+    checkpoint labels agree; the fraction just lets colours blend smoothly.
+    """
+    if level == RiskLevel.NO_TRAVEL:
+        return 4.0
+    low = 0.0 if level == RiskLevel.LOW else bounds[level - 1]
+    high = bounds[level]
+    return level + min(0.99, max(0.0, (value - low) / (high - low)))
+
+
+def condition_scores(wind_mph: float, rain_in_hr: float, snow_in_hr: float, load_lb: float) -> tuple[float, float, float]:
+    """Continuous (wind, rain, snow) scores on the 0–4 risk scale, load rules included."""
+    base_wind = classify_wind(wind_mph)
+    wind, _ = wind_level_for_load(wind_mph, load_lb)
+    wind_score = 4.0 if wind == RiskLevel.NO_TRAVEL else _score(base_wind, wind_mph, WIND_BOUNDS) + (wind - base_wind)
+    return (
+        wind_score,
+        _score(classify_rain(rain_in_hr), rain_in_hr, RAIN_BOUNDS),
+        _score(classify_snow(snow_in_hr), snow_in_hr, SNOW_BOUNDS),
+    )

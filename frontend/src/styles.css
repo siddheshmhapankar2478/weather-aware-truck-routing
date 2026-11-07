@@ -453,3 +453,91 @@ button.link {
   color: var(--danger);
   font-weight: 500;
 }
+
+/* ---------- Heatmap ---------- */
+.corridor-heat {
+  pointer-events: none;
+  image-rendering: auto;
+}
+.heat-controls {
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(620px, calc(100% - 24px));
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.heat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.heat-row input[type="range"] {
+  flex: 1;
+  min-width: 140px;
+  accent-color: var(--brand);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.segmented.small {
+  grid-template-columns: repeat(4, auto);
+}
+.segmented.small button {
+  padding: 3px 10px;
+  font-size: 0.78rem;
+}
+.segmented button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.play {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.75rem;
+  flex: none;
+}
+.play:disabled {
+  opacity: 0.5;
+}
+.hour-label {
+  min-width: 150px;
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--muted);
+}
+.error-text {
+  color: var(--danger);
+}
+.truck-marker {
+  display: grid !important;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--text);
+  border: 2px solid var(--text);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+}
+
+@media (max-width: 860px) {
+  .heat-controls {
+    bottom: 12px;
+  }
+  .hour-label {
+    min-width: 0;
+  }
+}

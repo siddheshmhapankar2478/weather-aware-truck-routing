@@ -71,7 +71,10 @@ class PointIndex:
         self.cell = cell_deg
         self.grid: dict[tuple[int, int], list[LatLon]] = defaultdict(list)
         for p in points:
-            self.grid[self._key(p)].append(p)
+            self.add(p)
+
+    def add(self, p: LatLon) -> None:
+        self.grid[self._key(p)].append(p)
 
     def _key(self, p: LatLon) -> tuple[int, int]:
         return (int(math.floor(p[0] / self.cell)), int(math.floor(p[1] / self.cell)))

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from .geo import simplify
+from .heatmap import corridor_grid
 from .geocoding import resolve_place
 from .recommendation import RouteScore, explain, rank_routes
 from .risk import RiskLevel, assess
@@ -21,6 +22,32 @@ class PlanError(ValueError):
     """The request can't be planned (bad input or out-of-range dates)."""
 
 
+def parse_departure(raw) -> datetime:
+    try:
+        departure = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise PlanError("Departure must be an ISO 8601 date/time.") from exc
+    if departure.tzinfo is None:
+        departure = departure.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    if departure < now - timedelta(hours=1):
+        raise PlanError("Departure time is in the past.")
+    if departure > now + MAX_DEPARTURE_AHEAD:
+        raise PlanError("Departure must be within the next 7 days (forecast range).")
+    return departure
+
+
+def parse_load(raw) -> float:
+    try:
+        load_lb = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise PlanError("Load weight must be a number of pounds.") from exc
+    if not 0 <= load_lb <= MAX_LOAD_LB:
+        raise PlanError(f"Load weight must be between 0 and {MAX_LOAD_LB:,} lb.")
+    return load_lb
+
+
 @dataclass
 class PlanRequest:
     origin: object
@@ -34,26 +61,8 @@ class PlanRequest:
         if not body.get("origin") or not body.get("destination"):
             raise PlanError("Origin and destination are required.")
 
-        raw_departure = body.get("departure")
-        try:
-            departure = datetime.fromisoformat(str(raw_departure).replace("Z", "+00:00"))
-        except ValueError as exc:
-            raise PlanError("Departure must be an ISO 8601 date/time.") from exc
-        if departure.tzinfo is None:
-            departure = departure.replace(tzinfo=timezone.utc)
-
-        now = datetime.now(timezone.utc)
-        if departure < now - timedelta(hours=1):
-            raise PlanError("Departure time is in the past.")
-        if departure > now + MAX_DEPARTURE_AHEAD:
-            raise PlanError("Departure must be within the next 7 days (forecast range).")
-
-        try:
-            load_lb = float(body.get("load_lb"))
-        except (TypeError, ValueError) as exc:
-            raise PlanError("Load weight must be a number of pounds.") from exc
-        if not 0 <= load_lb <= MAX_LOAD_LB:
-            raise PlanError(f"Load weight must be between 0 and {MAX_LOAD_LB:,} lb.")
+        departure = parse_departure(body.get("departure"))
+        load_lb = parse_load(body.get("load_lb"))
 
         try:
             interval = int(body.get("interval_mi", 25))
@@ -180,4 +189,5 @@ def build_plan(request: PlanRequest) -> dict:
             "warning": warning,
         },
         "routes": [payloads[chr(ord("A") + k)] for k in range(len(routes))],
+        "heatmap_grid": dict(zip(("points", "spacing_mi"), corridor_grid(routes))),
     }
